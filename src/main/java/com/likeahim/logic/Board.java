@@ -114,17 +114,13 @@ public class Board {
         boolean colorFlag = isColorWithMove(toMove.getColor()); //works also when player moves opponents piece
         boolean validMoveFlag = isValidMove(move);
         boolean captureCancelledFlag = isCaptureCancelled(move);
-        if (identityFlag && colorFlag && validMoveFlag) {
+        if (hasCapture(move) && isCaptureMoveValid(move) && identityFlag && colorFlag) {
+            moveWithCapture(move, toMove);
+        } else if (identityFlag && colorFlag && validMoveFlag) {
             if (hasCapture(move)) {
                 System.out.println("you need to capture, try again");
                 Move moveWithCapture = UserInput.makeAMoveWithCapture();
-                int removedRow = calculateRemovedRow(moveWithCapture);
-                int removedCol = calculateRemovedCol(moveWithCapture);
-                rows.get(moveWithCapture.getCurrentRow()).getCols().set(moveWithCapture.getCurrentCol(), new None());
-                rows.get(moveWithCapture.getNewRow()).getCols().set(moveWithCapture.getNewCol(), toMove);
-                rows.get(removedRow).getCols().set(removedCol, new None());
-                uptadeCast();
-                printInfoAfterMove();
+                moveWithCapture(moveWithCapture, toMove);
             } else {
                 System.out.println((movesIndex + 1) + ") " + colorWithMove + " moved -->");
                 rows.get(move.getCurrentRow()).getCols().set(move.getCurrentCol(), new None());
@@ -135,6 +131,28 @@ public class Board {
             System.out.println("unvalid move - you lose round");
             colorWithMove = changeColorWithMove();
         }
+    }
+
+    private boolean isCaptureMoveValid(Move move) {
+        boolean result = false;
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        if((currentRow - newRow != 0) && (currentCol - newCol != 0))
+            result = true;
+
+        return result;
+    }
+
+    private void moveWithCapture(Move moveWithCapture, Piece toMove) {
+        int removedRow = calculateRemovedRow(moveWithCapture);
+        int removedCol = calculateRemovedCol(moveWithCapture);
+        rows.get(moveWithCapture.getCurrentRow()).getCols().set(moveWithCapture.getCurrentCol(), new None());
+        rows.get(moveWithCapture.getNewRow()).getCols().set(moveWithCapture.getNewCol(), toMove);
+        rows.get(removedRow).getCols().set(removedCol, new None());
+        uptadeCast();
+        printInfoAfterMove();
     }
 
     private void uptadeCast() {
@@ -337,5 +355,13 @@ public class Board {
         else
             waitingColor = PiecesColor.WHITE;
         return waitingColor;
+    }
+
+    public PiecesColor getColorOnTop() {
+        return colorOnTop;
+    }
+
+    public PiecesColor getColorOnBottom() {
+        return colorOnBottom;
     }
 }
