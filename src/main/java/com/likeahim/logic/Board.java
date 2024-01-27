@@ -114,7 +114,7 @@ public class Board {
         boolean colorFlag = isColorWithMove(toMove.getColor()); //works also when player moves opponents piece
         boolean validMoveFlag = isValidMove(move);
         boolean captureCancelledFlag = isCaptureCancelled(move);
-        if (hasCapture(move) && isCaptureMoveValid(move) && identityFlag && colorFlag) {
+        if (isBigMove(move) && hasCapture(move) && isCaptureMoveValid(move) && identityFlag && colorFlag) {
             moveWithCapture(move, toMove);
         } else if (identityFlag && colorFlag && validMoveFlag) {
             if (hasCapture(move)) {
@@ -131,6 +131,15 @@ public class Board {
             System.out.println("unvalid move - you lose round");
             colorWithMove = changeColorWithMove();
         }
+    }
+
+    private boolean isBigMove(Move move) {
+        boolean result = false;
+        int deltaRow = move.getCurrentRow() - move.getNewRow();
+        int deltaCol = move.getCurrentCol() - move.getNewCol();
+        if((deltaRow == 2 || deltaRow == -2)  && (deltaCol == -2 || deltaCol == 2))
+            result = true;
+        return result;
     }
 
     private boolean isCaptureMoveValid(Move move) {
