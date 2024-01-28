@@ -21,10 +21,11 @@ public class CheckersApplication {
         Scanner scanner = new Scanner(System.in);
         while(board.getWhiteCast() != 0 || board.getBlackCast() != 0) {
             Move moveToMake;
-            System.out.print(board.getColorWithMove());
+//            System.out.print(board.getColorWithMove());
             moveToMake = UserInput.makeAMove(scanner);
             board.move(moveToMake);
         }
+        board.printGamesResult();
         scanner.close();
     }
 }

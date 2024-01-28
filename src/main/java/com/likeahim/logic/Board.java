@@ -228,11 +228,11 @@ public class Board {
         int nextRightCol = currentCol + 1;
         if (isBoardCapture)
             result = true;
-        else if (
-                ((getNextColor(nextUpRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow, nextLeftCol))
-                        || ((getNextColor(nextUpRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow, nextRightCol))
-                        || ((getNextColor(nextDownRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow, nextLeftCol))
-                        || ((getNextColor(nextDownRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow, nextRightCol))) {
+        else if ( //can give false answer
+                ((getNextColor(nextUpRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow-1, nextLeftCol-1))
+                        || ((getNextColor(nextUpRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow-1, nextRightCol+1))
+                        || ((getNextColor(nextDownRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow+1, nextLeftCol-1))
+                        || ((getNextColor(nextDownRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow+1, nextRightCol+1))) {
             result = true;
         }
         return result;
@@ -246,22 +246,10 @@ public class Board {
             return rows.get(nextUpRow).getCols().get(nextLeftCol).getColor();
     }
 
-    private record Result(PiecesColor leftUpColor, PiecesColor rightUpColor, PiecesColor leftDownColor,
-                          PiecesColor rightDownColor) {
-    }
-
     private boolean isFreeCaptureSpace(int nextRow, int nextCol) {
         boolean isFree = false;
-        int captureUpRow = nextRow - 1;
-        int captureDownRow = nextRow + 1;
-        int captureLeftCol = nextCol - 1;
-        int captureRightCol = nextCol + 1;
-        if ((rows.get(captureUpRow).getCols().get(captureLeftCol) instanceof None)
-                || (rows.get(captureUpRow).getCols().get(captureRightCol) instanceof None)
-                || (rows.get(captureDownRow).getCols().get(captureLeftCol) instanceof None)
-                || (rows.get(captureDownRow).getCols().get(captureRightCol) instanceof None)) {
+        if ((rows.get(nextRow).getCols().get(nextCol) instanceof None))
             isFree = true;
-        }
         return isFree;
     }
 
@@ -372,5 +360,12 @@ public class Board {
 
     public PiecesColor getColorOnBottom() {
         return colorOnBottom;
+    }
+
+    public void printGamesResult() {
+        if(whiteCast > blackCast)
+            System.out.println("WHITE wins " + whiteCast + " to " + blackCast);
+        else if(blackCast > whiteCast)
+            System.out.println("BLACK wins " + blackCast + " to " + whiteCast);
     }
 }

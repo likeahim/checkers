@@ -26,7 +26,7 @@ public class UserInput {
         Scanner scanner = new Scanner(System.in);
         int number = 0;
         do {
-            System.out.println("Bottom color has first move!\n Who starts on top?\n  1 - WHITES\n   2 - BLACK");
+            System.out.println("Bottom color has first move!\n Who starts on top?\n  1 - WHITE\n   2 - BLACK");
             number = scanner.nextInt();
         } while ((number < 1 || number > 2));
         return number;
