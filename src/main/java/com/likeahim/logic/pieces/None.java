@@ -4,14 +4,21 @@ import com.likeahim.logic.Move;
 import com.likeahim.logic.PiecesColor;
 
 public class None implements Piece {
+
+    private PiecesColor color = PiecesColor.NONE;
     @Override
     public PiecesColor getColor() {
-        return PiecesColor.NONE;
+        return this.color;
     }
 
     @Override
     public boolean isOpponent(Piece tempPiece) {
         return false;
+    }
+
+    @Override
+    public void setColor(PiecesColor color) {
+        this.color = color;
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.likeahim.logic.Move;
 import com.likeahim.logic.PiecesColor;
 
 public class TheMan implements Piece {
-    private final PiecesColor color;
+    private PiecesColor color;
 
     public TheMan(PiecesColor color) {
         this.color = color;
@@ -18,6 +18,11 @@ public class TheMan implements Piece {
     @Override
     public boolean isOpponent(Piece tempPiece) {
         return color != tempPiece.getColor();
+    }
+
+    @Override
+    public void setColor(PiecesColor color) {
+        this.color = color;
     }
 
     @Override

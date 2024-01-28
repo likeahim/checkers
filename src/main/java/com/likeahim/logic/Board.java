@@ -124,6 +124,7 @@ public class Board {
             } else {
                 System.out.println((movesIndex + 1) + ") " + colorWithMove + " moved -->");
                 rows.get(move.getCurrentRow()).getCols().set(move.getCurrentCol(), new None());
+                toMove.setColor(colorWithMove);
                 rows.get(move.getNewRow()).getCols().set(move.getNewCol(), toMove);
                 printInfoAfterMove();
             }
@@ -158,6 +159,7 @@ public class Board {
         int removedRow = calculateRemovedRow(moveWithCapture);
         int removedCol = calculateRemovedCol(moveWithCapture);
         rows.get(moveWithCapture.getCurrentRow()).getCols().set(moveWithCapture.getCurrentCol(), new None());
+        toMove.setColor(colorWithMove);
         rows.get(moveWithCapture.getNewRow()).getCols().set(moveWithCapture.getNewCol(), toMove);
         rows.get(removedRow).getCols().set(removedCol, new None());
         uptadeCast();

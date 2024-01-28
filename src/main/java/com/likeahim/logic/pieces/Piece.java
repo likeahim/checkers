@@ -7,4 +7,6 @@ public interface Piece {
     PiecesColor getColor();
 
     boolean isOpponent(Piece tempPiece);
+
+    void setColor(PiecesColor color);
 }
