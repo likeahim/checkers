@@ -247,7 +247,7 @@ public class Board {
         else
             return rows.get(nextUpRow).getCols().get(nextLeftCol).getColor();
     }
-
+// exception
     private boolean isFreeCaptureSpace(int nextRow, int nextCol) {
         boolean isFree = false;
         if ((rows.get(nextRow).getCols().get(nextCol) instanceof None))
