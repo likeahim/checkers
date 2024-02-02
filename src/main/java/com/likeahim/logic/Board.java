@@ -17,7 +17,7 @@ public class Board {
     private PiecesColor colorOnTop;
     private int movesIndex;
     private int whiteCast = 12;
-    private int blackCast = 12;
+    private int blackCast = 2;
 
     public Board() {
         for (int row = 0; row < 8; row++)
@@ -106,22 +106,24 @@ public class Board {
     }
 
     public boolean move(Move move) {
-        Piece toMove = getChecker(move.getCurrentRow(), move.getCurrentCol());
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        Piece toMove = getChecker(currentRow, currentCol);
         boolean identityFlag = isManPiece(toMove);
         boolean colorFlag = isColorWithMove(toMove.getColor()); //works also when player moves opponents piece
         boolean validMoveFlag = isValidMove(move);
         boolean captureCancelledFlag = isCaptureCancelled(move);
         if (identityFlag && colorFlag && validMoveFlag) {
-            if(hasCapture(move) && isBigMove(move)) {
+            if(hasCapture(currentRow, currentCol) && isBigMove(move)) {
                 moveWithCapture(move, toMove);
             } else {
                 makeThisMove(move, toMove);
             }
             return true;
         } else {
-            if (isBigMove(move) && hasCapture(move)) {
+            if (isBigMove(move) && hasCapture(currentRow, currentCol)) {
                 moveWithCapture(move, toMove);
-            } else if (hasCapture(move))
+            } else if (hasCapture(currentRow, currentCol))
                 System.out.println("you need to capture, try again");
             else
                 System.out.println("unvalid move, try again");
@@ -196,8 +198,6 @@ public class Board {
 
     private void printInfoAfterMove() {
         System.out.println(this);
-        colorWithMove = changeColorWithMove(); //another check if after capture is another capture, if not, than change color
-        System.out.println("Next move: " + colorWithMove);
         movesIndex++;
     }
 
@@ -218,12 +218,12 @@ public class Board {
         return result;
     }
 
-    private boolean hasCapture(Move move) {
-        Piece movingPiece = rows.get(move.getCurrentRow()).getCols().get(move.getCurrentCol());
+    private boolean hasCapture(int currentRow, int currentCol) {
+        Piece movingPiece = rows.get(currentRow).getCols().get(currentCol);
         boolean result = false;
-        boolean isBoardCapture = boardCaputre(move, result, movingPiece);
-        int currentRow = move.getCurrentRow();
-        int currentCol = move.getCurrentCol();
+        boolean isBoardCapture = boardCaputre(currentRow, currentCol, result, movingPiece);
+//        int currentRow = move.getCurrentRow();
+//        int currentCol = move.getCurrentCol();
         int nextUpRow = currentRow - 1;
         int nextDownRow = currentRow + 1;
         int nextLeftCol = currentCol - 1;
@@ -259,54 +259,54 @@ public class Board {
         return isFree;
     }
 
-    private boolean boardCaputre(Move move, boolean result, Piece movingPiece) {
-        if (move.getCurrentRow() >= 6 && move.getCurrentCol() <= 1) {
-            return captureLeftDown(move, movingPiece, result);
-        } else if (move.getCurrentRow() <= 1 && move.getCurrentCol() >= 6) {
-            return captureRightUp(move, movingPiece, result);
-        } else if (move.getCurrentRow() >= 6 && move.getCurrentCol() >= 6) {
-            return captureRightDown(move, movingPiece, result);
-        } else if (move.getCurrentRow() <= 1 && move.getCurrentCol() <= 1) {
-            return captureLeftUp(move, movingPiece, result);
+    private boolean boardCaputre(int currentRow, int currentCol, boolean result, Piece movingPiece) {
+        if (currentRow >= 6 && currentCol <= 1) {
+            return captureLeftDown(currentRow, currentCol, movingPiece, result);
+        } else if (currentRow <= 1 && currentCol >= 6) {
+            return captureRightUp(currentRow, currentCol, movingPiece, result);
+        } else if (currentRow >= 6 && currentCol >= 6) {
+            return captureRightDown(currentRow, currentCol, movingPiece, result);
+        } else if (currentRow <= 1 && currentCol <= 1) {
+            return captureLeftUp(currentRow, currentCol, movingPiece, result);
         }
         return result;
     }
 
-    private boolean captureLeftUp(Move move, Piece movingPiece, boolean result) {
+    private boolean captureLeftUp(int currentRow, int currentCol, Piece movingPiece, boolean result) {
         Piece tempPiece;
         Piece jumpPiece;
-        tempPiece = rows.get(move.getCurrentRow() + 1).getCols().get(move.getCurrentCol() + 1);
-        jumpPiece = rows.get(move.getCurrentRow() + 2).getCols().get(move.getCurrentCol() + 2);
+        tempPiece = rows.get(currentRow + 1).getCols().get(currentCol + 1);
+        jumpPiece = rows.get(currentRow + 2).getCols().get(currentCol + 2);
         if (movingPiece.isOpponent(tempPiece) && jumpPiece instanceof None)
             result = true;
         return result;
     }
 
-    private boolean captureRightDown(Move move, Piece movingPiece, boolean result) {
+    private boolean captureRightDown(int currentRow, int currentCol, Piece movingPiece, boolean result) {
         Piece jumpPiece;
         Piece tempPiece;
-        tempPiece = rows.get(move.getCurrentRow() - 1).getCols().get(move.getCurrentCol() - 1);
-        jumpPiece = rows.get(move.getCurrentRow() - 2).getCols().get(move.getCurrentCol() - 2);
+        tempPiece = rows.get(currentRow - 1).getCols().get(currentCol - 1);
+        jumpPiece = rows.get(currentRow - 2).getCols().get(currentCol - 2);
         if (movingPiece.isOpponent(tempPiece) && jumpPiece instanceof None)
             result = true;
         return result;
     }
 
-    private boolean captureRightUp(Move move, Piece movingPiece, boolean result) {
+    private boolean captureRightUp(int currentRow, int currentCol, Piece movingPiece, boolean result) {
         Piece jumpPiece;
         Piece tempPiece;
-        tempPiece = rows.get(move.getCurrentRow() + 1).getCols().get(move.getCurrentCol() - 1);
-        jumpPiece = rows.get(move.getCurrentRow() + 2).getCols().get(move.getCurrentCol() - 2);
+        tempPiece = rows.get(currentRow + 1).getCols().get(currentCol - 1);
+        jumpPiece = rows.get(currentRow + 2).getCols().get(currentCol - 2);
         if (movingPiece.isOpponent(tempPiece) && jumpPiece instanceof None)
             result = true;
         return result;
     }
 
-    private boolean captureLeftDown(Move move, Piece movingPiece, boolean result) {
+    private boolean captureLeftDown(int currentRow, int currentCol, Piece movingPiece, boolean result) {
         Piece jumpPiece;
         Piece tempPiece;
-        tempPiece = rows.get(move.getCurrentRow() - 1).getCols().get(move.getCurrentCol() + 1);
-        jumpPiece = rows.get(move.getCurrentRow() - 2).getCols().get(move.getCurrentCol() + 2);
+        tempPiece = rows.get(currentRow - 1).getCols().get(currentCol + 1);
+        jumpPiece = rows.get(currentRow - 2).getCols().get(currentCol + 2);
         if (movingPiece.isOpponent(tempPiece) && jumpPiece instanceof None)
             result = true;
         return result;
@@ -327,8 +327,11 @@ public class Board {
         return colorWithMove == color;
     }
 
-    private PiecesColor changeColorWithMove() {
-        return colorWithMove == PiecesColor.WHITE ? colorWithMove = PiecesColor.BLACK : PiecesColor.WHITE;
+    public void changeColorWithMove() {
+        if(colorWithMove == PiecesColor.WHITE)
+            colorWithMove = PiecesColor.BLACK;
+        else
+            colorWithMove = PiecesColor.WHITE;
     }
 
     private boolean isManPiece(Piece toMove) {
@@ -369,5 +372,9 @@ public class Board {
             System.out.println("WHITE wins " + whiteCast + " to " + blackCast);
         else if(blackCast > whiteCast)
             System.out.println("BLACK wins " + blackCast + " to " + whiteCast);
+    }
+
+    public boolean checkDoubleCapture(int newRow, int newCol) {
+        return hasCapture(newRow, newCol);
     }
 }

@@ -14,16 +14,25 @@ public class CheckersApplication {
         board.gameSet();
         System.out.println(board);
         Scanner scanner = new Scanner(System.in);
-        do {
-            boolean move = true;
-            while (move) {
+        playGame(board, scanner);
+        board.printGamesResult();
+        scanner.close();
+    }
+
+    private static void playGame(Board board, Scanner scanner) {
+        while (
+                (board.getWhiteCast() != 0 && board.getColorWithMove() == PiecesColor.WHITE) ||
+                (board.getBlackCast() != 0 && board.getColorWithMove() == PiecesColor.BLACK)
+        ) {
+            boolean move = false;
+            while (!move) {
                 Move moveToMake;
                 System.out.print(board.getColorWithMove());
                 moveToMake = UserInput.makeAMove(scanner);
                 move = board.move(moveToMake);
+                move = !(board.checkDoubleCapture(moveToMake.getNewRow(), moveToMake.getNewCol()));
             }
-        } while (board.getWhiteCast() != 0 || board.getBlackCast() != 0);
-        board.printGamesResult();
-        scanner.close();
+            board.changeColorWithMove();
+        }
     }
 }
