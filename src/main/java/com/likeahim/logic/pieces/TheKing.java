@@ -17,12 +17,20 @@ public class TheKing implements Piece{
 
     @Override
     public boolean isOpponent(Piece tempPiece) {
-        return color == tempPiece.getColor();
+        return color != tempPiece.getColor();
     }
 
     @Override
     public void setColor(PiecesColor color) {
         this.color = color;
+    }
+
+    @Override
+    public String toString() {
+        if(color == PiecesColor.WHITE)
+            return "WK";
+        else
+            return "BK";
     }
 
 }

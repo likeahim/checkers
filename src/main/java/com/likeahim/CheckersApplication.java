@@ -29,8 +29,11 @@ public class CheckersApplication {
                 Move moveToMake;
                 System.out.print(board.getColorWithMove());
                 moveToMake = UserInput.makeAMove(scanner);
+                boolean moveResult = board.isBigMove(moveToMake);
                 move = board.move(moveToMake);
-                move = !(board.checkDoubleCapture(moveToMake.getNewRow(), moveToMake.getNewCol()));
+                if(board.checkDoubleCapture(moveToMake.getNewRow(), moveToMake.getNewCol(), moveResult, moveToMake)) {
+                    move = false;
+                }
             }
             board.changeColorWithMove();
         }

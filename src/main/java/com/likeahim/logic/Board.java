@@ -17,7 +17,7 @@ public class Board {
     private PiecesColor colorOnTop;
     private int movesIndex;
     private int whiteCast = 12;
-    private int blackCast = 2;
+    private int blackCast = 12;
 
     public Board() {
         for (int row = 0; row < 8; row++)
@@ -109,12 +109,16 @@ public class Board {
         int currentRow = move.getCurrentRow();
         int currentCol = move.getCurrentCol();
         Piece toMove = getChecker(currentRow, currentCol);
-        boolean identityFlag = isManPiece(toMove);
+        boolean identityFlag = isMovingPiece(toMove);
+        boolean isKing = isKing(toMove);
         boolean colorFlag = isColorWithMove(toMove.getColor()); //works also when player moves opponents piece
         boolean validMoveFlag = isValidMove(move);
         boolean captureCancelledFlag = isCaptureCancelled(move);
-        if (identityFlag && colorFlag && validMoveFlag) {
-            if(hasCapture(currentRow, currentCol) && isBigMove(move)) {
+        if (isKing && identityFlag && colorFlag) {
+            kingsMove(move, toMove);
+            return true;
+        } else if (identityFlag && colorFlag && validMoveFlag) {
+            if (hasCapture(currentRow, currentCol) && isBigMove(move)) {
                 moveWithCapture(move, toMove);
             } else {
                 makeThisMove(move, toMove);
@@ -123,6 +127,7 @@ public class Board {
         } else {
             if (isBigMove(move) && hasCapture(currentRow, currentCol)) {
                 moveWithCapture(move, toMove);
+                return true;
             } else if (hasCapture(currentRow, currentCol))
                 System.out.println("you need to capture, try again");
             else
@@ -131,18 +136,177 @@ public class Board {
         }
     }
 
-    private void makeThisMove(Move move, Piece toMove) {
-        System.out.println((movesIndex + 1) + ") " + colorWithMove + " moved -->");
-        rows.get(move.getCurrentRow()).getCols().set(move.getCurrentCol(), new None());
-        rows.get(move.getNewRow()).getCols().set(move.getNewCol(), toMove);
+    private void kingsMove(Move move, Piece toMove) {
+
+        int deltaRow = move.getCurrentRow() - move.getNewRow();
+        int deltaCol = move.getCurrentCol() - move.getNewCol();
+        if (deltaRow > 0 && deltaCol < 0)
+            fromBottomUpRight(toMove, move);
+         else if (deltaRow > 0 && deltaCol > 0)
+            fromBottomUpLeft(toMove, move);
+         else if (deltaRow < 0 && deltaCol < 0)
+             fromTopDownRight(toMove, move);
+         else
+             fromTopDownLeft(toMove, move);
+
+    }
+
+    private void fromTopDownLeft(Piece toMove, Move move) {
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        int checkRow = currentRow;
+        int checkCol = currentCol;
+        for (int i = currentRow; i < newRow; i++) {
+            checkRow++;
+            checkCol--;
+            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+                rows.get(checkRow).getCols().set(checkCol, new None());
+                rows.get(checkRow + 1).getCols().set(checkCol - 1, toMove);
+                rows.get(currentRow).getCols().set(currentCol, new None());
+                uptadeCast();
+                break;
+            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+                System.out.println("unvalid move");
+                break;
+            }
+            else {
+                rows.get(currentRow).getCols().set(currentCol, new None());
+            }
+            if(checkRow == newRow)
+                rows.get(newRow).getCols().set(newCol, toMove);
+        }
         printInfoAfterMove();
     }
 
-    private boolean isBigMove(Move move) {
+    private void fromTopDownRight(Piece toMove, Move move) {
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        int checkRow = currentRow;
+        int checkCol = currentCol;
+        for (int i = currentRow; i < newRow; i++) {
+            checkRow++;
+            checkCol++;
+            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+                rows.get(checkRow).getCols().set(checkCol, new None());
+                rows.get(checkRow + 1).getCols().set(checkCol + 1, toMove);
+                rows.get(currentRow).getCols().set(currentCol, new None());
+                uptadeCast();
+                break;
+            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+                System.out.println("unvalid move");
+                break;
+            }
+            else {
+                rows.get(currentRow).getCols().set(currentCol, new None());
+            }
+            if(checkRow == newRow)
+                rows.get(newRow).getCols().set(newCol, toMove);
+        }
+        printInfoAfterMove();
+    }
+
+    private void fromBottomUpLeft(Piece toMove, Move move) {
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        int checkRow = currentRow;
+        int checkCol = currentCol;
+        for (int i = currentRow; i > newRow; i--) {
+            checkRow--;
+            checkCol--;
+            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+                rows.get(checkRow).getCols().set(checkCol, new None());
+                rows.get(checkRow - 1).getCols().set(checkCol - 1, toMove);
+                rows.get(currentRow).getCols().set(currentCol, new None());
+                uptadeCast();
+                break;
+            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+                System.out.println("unvalid move");
+                break;
+            }
+            else {
+                rows.get(currentRow).getCols().set(currentCol, new None());
+            }
+            if(checkRow == newRow)
+                rows.get(newRow).getCols().set(newCol, toMove);
+        }
+        printInfoAfterMove();
+
+    }
+
+    private void fromBottomUpRight(Piece toMove, Move move) {
+        int currentRow = move.getCurrentRow();
+        int currentCol = move.getCurrentCol();
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        int checkRow = currentRow;
+        int checkCol = currentCol;
+        for (int i = currentRow; i > newRow; i--) {
+            checkRow--;
+            checkCol++;
+            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+                rows.get(checkRow).getCols().set(checkCol, new None());
+                rows.get(checkRow - 1).getCols().set(checkCol + 1, toMove);
+                rows.get(currentRow).getCols().set(currentCol, new None());
+                uptadeCast();
+                break;
+            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+                System.out.println("unvalid move");
+                break;
+            }
+            else {
+                rows.get(currentRow).getCols().set(currentCol, new None());
+            }
+            if(checkRow == newRow)
+                rows.get(newRow).getCols().set(newCol, toMove);
+        }
+        printInfoAfterMove();
+    }
+
+    private void makeThisMove(Move move, Piece toMove) {
+        boolean isFirstOrLastRow = isFirstOrLastRow(move);
+        System.out.println((movesIndex + 1) + ") " + colorWithMove + " moved -->");
+        rows.get(move.getCurrentRow()).getCols().set(move.getCurrentCol(), new None()); //possible method setNone()
+        if (isFirstOrLastRow)
+            changeToKing(move);
+        else
+            rows.get(move.getNewRow()).getCols().set(move.getNewCol(), toMove);
+        printInfoAfterMove();
+    }
+
+    private void moveWithCapture(Move moveWithCapture, Piece toMove) {
+        int removedRow = calculateRemovedRow(moveWithCapture);
+        int removedCol = calculateRemovedCol(moveWithCapture);
+        boolean isFirstOrLastRow = isFirstOrLastRow(moveWithCapture);
+        rows.get(moveWithCapture.getCurrentRow()).getCols().set(moveWithCapture.getCurrentCol(), new None());
+        toMove.setColor(colorWithMove);
+        if (isFirstOrLastRow)
+            changeToKing(moveWithCapture);
+        else
+            rows.get(moveWithCapture.getNewRow()).getCols().set(moveWithCapture.getNewCol(), toMove);
+        rows.get(removedRow).getCols().set(removedCol, new None());
+        uptadeCast();
+        printInfoAfterMove();
+    }
+
+    private boolean isFirstOrLastRow(Move move) {
+        return move.getNewRow() == 7 || move.getNewRow() == 0;
+    }
+
+    public boolean isBigMove(Move move) {
         boolean result = false;
         int deltaRow = move.getCurrentRow() - move.getNewRow();
         int deltaCol = move.getCurrentCol() - move.getNewCol();
-        if((deltaRow == 2 || deltaRow == -2)  && (deltaCol == -2 || deltaCol == 2) && isCaptureMoveValid(move))
+        if ((deltaRow == 2 || deltaRow == -2) && (deltaCol == -2 || deltaCol == 2) && isCaptureMoveValid(move))
             result = true;
         return result;
     }
@@ -151,18 +315,15 @@ public class Board {
         int capturedRow = calculateRemovedRow(move);
         int capturedCol = calculateRemovedCol(move);
         Piece pieceToCapture = getChecker(capturedRow, capturedCol);
-        return (isManPiece(pieceToCapture) && pieceToCapture.getColor() != colorWithMove);
+        return (isMovingPiece(pieceToCapture) && pieceToCapture.getColor() != colorWithMove);
     }
 
-    private void moveWithCapture(Move moveWithCapture, Piece toMove) {
-        int removedRow = calculateRemovedRow(moveWithCapture);
-        int removedCol = calculateRemovedCol(moveWithCapture);
-        rows.get(moveWithCapture.getCurrentRow()).getCols().set(moveWithCapture.getCurrentCol(), new None());
-        toMove.setColor(colorWithMove);
-        rows.get(moveWithCapture.getNewRow()).getCols().set(moveWithCapture.getNewCol(), toMove);
-        rows.get(removedRow).getCols().set(removedCol, new None());
-        uptadeCast();
-        printInfoAfterMove();
+    private void changeToKing(Move move) {
+        if (move.getNewRow() == 7 && getColorOnBottom() != colorWithMove) {
+            rows.get(move.getNewRow()).getCols().set(move.getNewCol(), new TheKing(colorWithMove));
+        } else if (move.getNewRow() == 0 && colorOnTop != colorWithMove) {
+            rows.get(move.getNewRow()).getCols().set(move.getNewCol(), new TheKing(colorWithMove));
+        }
     }
 
     private void uptadeCast() {
@@ -206,7 +367,7 @@ public class Board {
         Piece movingPiece = rows.get(move.getCurrentRow()).getCols().get(move.getCurrentCol());
         int deltaRow = move.getCurrentRow() - move.getNewRow();
         int deltaCol = move.getCurrentCol() - move.getNewCol();
-        if (rows.get(move.getNewRow()).getCols().get(move.getNewCol()).isOpponent(movingPiece)){
+        if (rows.get(move.getNewRow()).getCols().get(move.getNewCol()).isOpponent(movingPiece)) {
             return false;
         } else if (movingPiece.getColor() == getColorOnBottom()) {//it redundant, color already checked
             if (deltaRow > 0 && ((deltaCol < 0 && move.getNewCol() <= 7) || (deltaCol > 0 && move.getNewCol() >= 0)))
@@ -231,10 +392,10 @@ public class Board {
         if (isBoardCapture)
             result = true;
         else if ( //can give false answer
-                ((getNextColor(nextUpRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow-1, nextLeftCol-1))
-                        || ((getNextColor(nextUpRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow-1, nextRightCol+1))
-                        || ((getNextColor(nextDownRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow+1, nextLeftCol-1))
-                        || ((getNextColor(nextDownRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow+1, nextRightCol+1))) {
+                ((getNextColor(nextUpRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow - 1, nextLeftCol - 1))
+                        || ((getNextColor(nextUpRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextUpRow - 1, nextRightCol + 1))
+                        || ((getNextColor(nextDownRow, nextLeftCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow + 1, nextLeftCol - 1))
+                        || ((getNextColor(nextDownRow, nextRightCol) == getWaitingColor()) && isFreeCaptureSpace(nextDownRow + 1, nextRightCol + 1))) {
             result = true;
         }
         return result;
@@ -247,6 +408,7 @@ public class Board {
         else
             return rows.get(nextUpRow).getCols().get(nextLeftCol).getColor();
     }
+
     // exception
     private boolean isFreeCaptureSpace(int nextRow, int nextCol) {
         boolean isFree = false;
@@ -313,14 +475,9 @@ public class Board {
     }
 
     private boolean isCaptureCancelled(Move move) {
-        boolean result = false;
-        int deltaRow = move.getCurrentRow() - move.getNewRow();
-        int deltaCol = move.getCurrentCol() - move.getNewCol();
-        if ((move.getCurrentCol() == 1 && deltaCol > 0) || (move.getCurrentCol() == 6 && deltaCol < 0))
-            result = true;
-        else if ((move.getCurrentRow() == 1 && deltaRow > 0) || (move.getCurrentRow() == 6 && deltaRow < 0))
-            result = true;
-        return result;
+        int newRow = move.getNewRow();
+        int newCol = move.getNewCol();
+        return (newRow == 0 || newRow == 7) || (newCol == 0 || newCol == 7);
     }
 
     private boolean isColorWithMove(PiecesColor color) {
@@ -328,14 +485,14 @@ public class Board {
     }
 
     public void changeColorWithMove() {
-        if(colorWithMove == PiecesColor.WHITE)
+        if (colorWithMove == PiecesColor.WHITE)
             colorWithMove = PiecesColor.BLACK;
         else
             colorWithMove = PiecesColor.WHITE;
     }
 
-    private boolean isManPiece(Piece toMove) {
-        return !(toMove instanceof None || toMove instanceof TheKing);
+    private boolean isMovingPiece(Piece toMove) {
+        return !(toMove instanceof None);
     }
 
     private boolean isKing(Piece toMove) {
@@ -368,13 +525,13 @@ public class Board {
     }
 
     public void printGamesResult() {
-        if(whiteCast > blackCast)
+        if (whiteCast > blackCast)
             System.out.println("WHITE wins " + whiteCast + " to " + blackCast);
-        else if(blackCast > whiteCast)
+        else if (blackCast > whiteCast)
             System.out.println("BLACK wins " + blackCast + " to " + whiteCast);
     }
 
-    public boolean checkDoubleCapture(int newRow, int newCol) {
-        return hasCapture(newRow, newCol);
+    public boolean checkDoubleCapture(int newRow, int newCol, boolean moveResult, Move move) {
+        return hasCapture(newRow, newCol) && moveResult && !(isCaptureCancelled(move));
     }
 }
