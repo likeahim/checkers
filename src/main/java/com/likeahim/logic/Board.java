@@ -115,8 +115,7 @@ public class Board {
         boolean validMoveFlag = isValidMove(move);
         boolean captureCancelledFlag = isCaptureCancelled(move);
         if (isKing && identityFlag && colorFlag) {
-            kingsMove(move, toMove);
-            return true;
+            return kingsMove(move, toMove);
         } else if (identityFlag && colorFlag && validMoveFlag) {
             if (hasCapture(currentRow, currentCol) && isBigMove(move)) {
                 moveWithCapture(move, toMove);
@@ -136,141 +135,169 @@ public class Board {
         }
     }
 
-    private void kingsMove(Move move, Piece toMove) {
+    private boolean kingsMove(Move move, Piece toMove) {
 
-        int deltaRow = move.getCurrentRow() - move.getNewRow();
-        int deltaCol = move.getCurrentCol() - move.getNewCol();
-        if (deltaRow > 0 && deltaCol < 0)
-            fromBottomUpRight(toMove, move);
-         else if (deltaRow > 0 && deltaCol > 0)
-            fromBottomUpLeft(toMove, move);
-         else if (deltaRow < 0 && deltaCol < 0)
-             fromTopDownRight(toMove, move);
-         else
-             fromTopDownLeft(toMove, move);
-
+        int deltaRow = Math.abs(move.getCurrentRow() - move.getNewRow());
+        int deltaCol = Math.abs(move.getCurrentCol() - move.getNewCol());
+        if (deltaRow == deltaCol) {
+            return doKingMove(toMove, move);
+        } else
+            return false;
     }
 
-    private void fromTopDownLeft(Piece toMove, Move move) {
-        int currentRow = move.getCurrentRow();
-        int currentCol = move.getCurrentCol();
-        int newRow = move.getNewRow();
-        int newCol = move.getNewCol();
-        int checkRow = currentRow;
-        int checkCol = currentCol;
-        for (int i = currentRow; i < newRow; i++) {
-            checkRow++;
-            checkCol--;
-            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
-            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
-                rows.get(checkRow).getCols().set(checkCol, new None());
-                rows.get(checkRow + 1).getCols().set(checkCol - 1, toMove);
-                rows.get(currentRow).getCols().set(currentCol, new None());
-                uptadeCast();
-                break;
-            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
-                System.out.println("unvalid move");
-                break;
+    private boolean doKingMove(Piece toMove, Move move) {
+        int deltaRow = (move.getNewRow() - move.getCurrentRow() > 0) ? 1 : -1;
+        int deltaCol = (move.getNewCol() - move.getCurrentCol() > 0) ? 1 : -1;
+        int distance = abs(move.getNewRow() - move.getCurrentRow());
+        boolean empty = true;
+        boolean hit = false;
+        for (int k = 1; k <= distance; k++) {
+            if (k == distance - 1) {
+                if (empty && getChecker(move.getCurrentRow() + k * deltaRow, move.getCurrentCol() + k * deltaCol).isOpponent(toMove)) {
+                    hit = true;
+                } else {
+                    if (getChecker(move.getCurrentRow() + k * deltaRow, move.getCurrentCol() + k * deltaCol).getColor() == toMove.getColor()) {
+                        empty = false;
+                    }
+                }
+            } else {
+                if (empty && !(getChecker(move.getCurrentRow() + k * deltaRow, move.getCurrentCol() + k * deltaCol) instanceof None)) {
+                    empty = false;
+                }
             }
-            else {
-                rows.get(currentRow).getCols().set(currentCol, new None());
-            }
-            if(checkRow == newRow)
-                rows.get(newRow).getCols().set(newCol, toMove);
         }
-        printInfoAfterMove();
-    }
-
-    private void fromTopDownRight(Piece toMove, Move move) {
-        int currentRow = move.getCurrentRow();
-        int currentCol = move.getCurrentCol();
-        int newRow = move.getNewRow();
-        int newCol = move.getNewCol();
-        int checkRow = currentRow;
-        int checkCol = currentCol;
-        for (int i = currentRow; i < newRow; i++) {
-            checkRow++;
-            checkCol++;
-            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
-            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
-                rows.get(checkRow).getCols().set(checkCol, new None());
-                rows.get(checkRow + 1).getCols().set(checkCol + 1, toMove);
-                rows.get(currentRow).getCols().set(currentCol, new None());
+        if (empty || hit) {
+            rows.get(move.getNewRow()).getCols().set(move.getNewCol(), toMove);
+            rows.get(move.getCurrentRow()).getCols().set(move.getCurrentCol(), new None());
+            if (hit) {
+                rows.get(move.getCurrentRow() + (distance - 1) * deltaRow).getCols().set(move.getCurrentCol() + (distance - 1) * deltaCol, new None());
                 uptadeCast();
-                break;
-            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
-                System.out.println("unvalid move");
-                break;
             }
-            else {
-                rows.get(currentRow).getCols().set(currentCol, new None());
-            }
-            if(checkRow == newRow)
-                rows.get(newRow).getCols().set(newCol, toMove);
+            printInfoAfterMove();
+            return true;
         }
-        printInfoAfterMove();
+        return false;
     }
-
-    private void fromBottomUpLeft(Piece toMove, Move move) {
-        int currentRow = move.getCurrentRow();
-        int currentCol = move.getCurrentCol();
-        int newRow = move.getNewRow();
-        int newCol = move.getNewCol();
-        int checkRow = currentRow;
-        int checkCol = currentCol;
-        for (int i = currentRow; i > newRow; i--) {
-            checkRow--;
-            checkCol--;
-            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
-            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
-                rows.get(checkRow).getCols().set(checkCol, new None());
-                rows.get(checkRow - 1).getCols().set(checkCol - 1, toMove);
-                rows.get(currentRow).getCols().set(currentCol, new None());
-                uptadeCast();
-                break;
-            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
-                System.out.println("unvalid move");
-                break;
-            }
-            else {
-                rows.get(currentRow).getCols().set(currentCol, new None());
-            }
-            if(checkRow == newRow)
-                rows.get(newRow).getCols().set(newCol, toMove);
-        }
-        printInfoAfterMove();
-
-    }
-
-    private void fromBottomUpRight(Piece toMove, Move move) {
-        int currentRow = move.getCurrentRow();
-        int currentCol = move.getCurrentCol();
-        int newRow = move.getNewRow();
-        int newCol = move.getNewCol();
-        int checkRow = currentRow;
-        int checkCol = currentCol;
-        for (int i = currentRow; i > newRow; i--) {
-            checkRow--;
-            checkCol++;
-            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
-            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
-                rows.get(checkRow).getCols().set(checkCol, new None());
-                rows.get(checkRow - 1).getCols().set(checkCol + 1, toMove);
-                rows.get(currentRow).getCols().set(currentCol, new None());
-                uptadeCast();
-                break;
-            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
-                System.out.println("unvalid move");
-                break;
-            }
-            else {
-                rows.get(currentRow).getCols().set(currentCol, new None());
-            }
-            if(checkRow == newRow)
-                rows.get(newRow).getCols().set(newCol, toMove);
-        }
-        printInfoAfterMove();
-    }
+//    private void fromTopDownLeft(Piece toMove, Move move) {
+//        int currentRow = move.getCurrentRow();
+//        int currentCol = move.getCurrentCol();
+//        int newRow = move.getNewRow();
+//        int newCol = move.getNewCol();
+//        int checkRow = currentRow;
+//        int checkCol = currentCol;
+//        for (int i = currentRow; i < newRow; i++) {
+//            checkRow++;
+//            checkCol--;
+//            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+//            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+//                rows.get(checkRow).getCols().set(checkCol, new None());
+//                rows.get(checkRow + 1).getCols().set(checkCol - 1, toMove);
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//                uptadeCast();
+//                break;
+//            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+//                System.out.println("unvalid move");
+//                break;
+//            }
+//            else {
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//            }
+//            if(checkRow == newRow)
+//                rows.get(newRow).getCols().set(newCol, toMove);
+//        }
+//        printInfoAfterMove();
+//    }
+//
+//    private void fromTopDownRight(Piece toMove, Move move) {
+//        int currentRow = move.getCurrentRow();
+//        int currentCol = move.getCurrentCol();
+//        int newRow = move.getNewRow();
+//        int newCol = move.getNewCol();
+//        int checkRow = currentRow;
+//        int checkCol = currentCol;
+//        for (int i = currentRow; i < newRow; i++) {
+//            checkRow++;
+//            checkCol++;
+//            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+//            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+//                rows.get(checkRow).getCols().set(checkCol, new None());
+//                rows.get(checkRow + 1).getCols().set(checkCol + 1, toMove);
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//                uptadeCast();
+//                break;
+//            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+//                System.out.println("unvalid move");
+//                break;
+//            }
+//            else {
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//            }
+//            if(checkRow == newRow)
+//                rows.get(newRow).getCols().set(newCol, toMove);
+//        }
+//        printInfoAfterMove();
+//    }
+//
+//    private void fromBottomUpLeft(Piece toMove, Move move) {
+//        int currentRow = move.getCurrentRow();
+//        int currentCol = move.getCurrentCol();
+//        int newRow = move.getNewRow();
+//        int newCol = move.getNewCol();
+//        int checkRow = currentRow;
+//        int checkCol = currentCol;
+//        for (int i = currentRow; i > newRow; i--) {
+//            checkRow--;
+//            checkCol--;
+//            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+//            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+//                rows.get(checkRow).getCols().set(checkCol, new None());
+//                rows.get(checkRow - 1).getCols().set(checkCol - 1, toMove);
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//                uptadeCast();
+//                break;
+//            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+//                System.out.println("unvalid move");
+//                break;
+//            }
+//            else {
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//            }
+//            if(checkRow == newRow)
+//                rows.get(newRow).getCols().set(newCol, toMove);
+//        }
+//        printInfoAfterMove();
+//
+//    }
+//
+//    private void fromBottomUpRight(Piece toMove, Move move) {
+//        int currentRow = move.getCurrentRow();
+//        int currentCol = move.getCurrentCol();
+//        int newRow = move.getNewRow();
+//        int newCol = move.getNewCol();
+//        int checkRow = currentRow;
+//        int checkCol = currentCol;
+//        for (int i = currentRow; i > newRow; i--) {
+//            checkRow--;
+//            checkCol++;
+//            Piece nextPiece = rows.get(checkRow).getCols().get(checkCol);
+//            if (isMovingPiece(nextPiece) && toMove.getColor() != nextPiece.getColor()) {
+//                rows.get(checkRow).getCols().set(checkCol, new None());
+//                rows.get(checkRow - 1).getCols().set(checkCol + 1, toMove);
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//                uptadeCast();
+//                break;
+//            } else if (isMovingPiece(nextPiece) && toMove.getColor() == nextPiece.getColor()) {
+//                System.out.println("unvalid move");
+//                break;
+//            }
+//            else {
+//                rows.get(currentRow).getCols().set(currentCol, new None());
+//            }
+//            if(checkRow == newRow)
+//                rows.get(newRow).getCols().set(newCol, toMove);
+//        }
+//        printInfoAfterMove();
+//    }
 
     private void makeThisMove(Move move, Piece toMove) {
         boolean isFirstOrLastRow = isFirstOrLastRow(move);
